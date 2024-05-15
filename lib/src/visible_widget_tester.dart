@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -10,13 +12,20 @@ import 'package:flutter/src/semantics/semantics.dart';
 import 'package:flutter/src/services/keyboard_key.g.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as path;
+import 'package:sanitize_filename/sanitize_filename.dart';
 
 const String _defaultPlatform = kIsWeb ? 'web' : 'android';
 
 class VisibleWidgetTester implements WidgetTester {
   final WidgetTester widgetTester;
+  final String testCaseDescription;
+  int _pumpCount = 0;
 
-  VisibleWidgetTester({required this.widgetTester});
+  VisibleWidgetTester({
+    required this.widgetTester,
+    required this.testCaseDescription,
+  });
 
   @override
   Iterable<Element> get allElements => widgetTester.allElements;
@@ -316,62 +325,83 @@ class VisibleWidgetTester implements WidgetTester {
   @override
   Future<void> pump(
       [Duration? duration,
-      EnginePhase phase = EnginePhase.sendSemanticsUpdate]) {
-    // TODO: Bruno back here!
-
-    return widgetTester.pump(
+      EnginePhase phase = EnginePhase.sendSemanticsUpdate]) async {
+    _pumpCount++;
+    await widgetTester.pump(
       duration,
       phase,
     );
+    await saveCurrentWidgetAsImage();
   }
 
   @override
   Future<int> pumpAndSettle(
       [Duration duration = const Duration(milliseconds: 100),
       EnginePhase phase = EnginePhase.sendSemanticsUpdate,
-      Duration timeout = const Duration(minutes: 10)]) {
-    // TODO: Bruno back here!
-
-    return widgetTester.pumpAndSettle(
+      Duration timeout = const Duration(minutes: 10)]) async {
+    _pumpCount++;
+    final result = widgetTester.pumpAndSettle(
       duration,
       phase,
       timeout,
     );
+    await saveCurrentWidgetAsImage();
+    return result;
   }
 
   @override
-  Future<void> pumpBenchmark(Duration duration) {
-    // TODO: Bruno back here!
-
-    return widgetTester.pumpBenchmark(
+  Future<void> pumpBenchmark(Duration duration) async {
+    _pumpCount++;
+    await widgetTester.pumpBenchmark(
       duration,
     );
+    await saveCurrentWidgetAsImage();
   }
 
   @override
   Future<void> pumpFrames(Widget target, Duration maxDuration,
       [Duration interval =
-          const Duration(milliseconds: 16, microseconds: 683)]) {
-    // TODO: Bruno back here!
-
-    return widgetTester.pumpFrames(
+          const Duration(milliseconds: 16, microseconds: 683)]) async {
+    _pumpCount++;
+    await widgetTester.pumpFrames(
       target,
       maxDuration,
       interval,
     );
+    await saveCurrentWidgetAsImage();
   }
 
   @override
   Future<void> pumpWidget(Widget widget,
       [Duration? duration,
-      EnginePhase phase = EnginePhase.sendSemanticsUpdate]) {
-    // TODO: Bruno back here!
-
-    return widgetTester.pumpWidget(
+      EnginePhase phase = EnginePhase.sendSemanticsUpdate]) async {
+    _pumpCount++;
+    await widgetTester.pumpWidget(
       widget,
       duration,
       phase,
     );
+
+    await saveCurrentWidgetAsImage();
+  }
+
+  Future<void> saveCurrentWidgetAsImage() async {
+    TestAsyncUtils.guardSync();
+
+    await binding.runAsync(() async {
+      final firstElement = binding.rootElement!;
+      final image = await captureImage(firstElement);
+      final bytes = await image.toByteData(format: ImageByteFormat.png);
+      final byteList = bytes?.buffer.asUint8List();
+      if (byteList != null) {
+        final file = await File(path.join(
+          'visual_debug',
+          sanitizeFilename(testCaseDescription),
+          'pump_$_pumpCount.png',
+        )).create(recursive: true);
+        file.writeAsBytesSync(byteList);
+      }
+    });
   }
 
   @override

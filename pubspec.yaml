@@ -9,6 +9,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  sanitize_filename: any
   flutter:
     sdk: flutter
   flutter_test:

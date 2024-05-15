@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test_api/scaffolding.dart' as test_package;
 import 'package:meta/meta.dart';
@@ -21,9 +23,14 @@ void visibleWidgetTest(
 }) {
   testWidgets(
     description,
-    (WidgetTester widgetTester) => callback(
-      VisibleWidgetTester(widgetTester: widgetTester),
-    ),
+    (WidgetTester widgetTester) async {
+      await callback(
+        VisibleWidgetTester(
+          testCaseDescription: description,
+          widgetTester: widgetTester,
+        ),
+      );
+    },
     skip: skip,
     timeout: timeout,
     semanticsEnabled: semanticsEnabled,
