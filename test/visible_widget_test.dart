@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:visible_widget_test/visible_widget_test.dart';
 
 void main() {
-  visibleWidgetTest("Example", (widgetTester) async {
+  testWidgets("Example", (widgetTester) async {
     final widget = MaterialApp(
       home: Scaffold(
         appBar: AppBar(

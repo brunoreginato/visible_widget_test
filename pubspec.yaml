@@ -5,8 +5,8 @@ repository: https://github.com/brunoreginato/visible_widget_test
 issue_tracker: https://github.com/brunoreginato/visible_widget_test/issues
 
 environment:
-  sdk: ">=3.3.4 <4.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=3.3.2 <4.0.0"
+  flutter: ">=3.22.0"
 
 dependencies:
   sanitize_filename: any
